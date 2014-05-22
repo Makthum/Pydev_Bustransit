@@ -15,7 +15,10 @@ CELERYBEAT_SCHEDULE = {
         'task': 'loadrealtimedata',  # example: 'files.tasks.cleanup'
         'schedule': crontab()
     },
-}
+    'TripUpdates':{
+     'task':'loadTripUpdates',
+     'schedule':crontab()              },
+    }
 
 # if you want to place the schedule file relative to your project or something:
 CELERYBEAT_SCHEDULER = "djcelery.schedulers.DatabaseScheduler"

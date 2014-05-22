@@ -8,6 +8,10 @@ from django.template import RequestContext
 
 from TransitSystem.forms import SearchForm
 from models import VehiclePositions, Trips, Routes, StopTimes
+from TransitSystem.models import TripUpdates, Stops, CalendarDates
+from TransitSystem import gtfs_realtime_pb2
+import urllib
+from operator import itemgetter
 
 
 @login_required
@@ -24,18 +28,14 @@ def searchbus(request):
         tripdetails=[]
         date=request.GET['searchdate']
         time=request.GET['searchtime']
+        date=datetime.strptime(date,'%Y/%m/%d')
         print date
-        dayofweek=datetime.strptime(date,'%Y/%m/%d').weekday()
-        if dayofweek<5:
-            serviceid=1
-        elif dayofweek==6:
-            serviceid=2
-        else:
-            serviceid=3
+        service_id=CalendarDates.objects.filter(date=datetime.strftime(date,'%Y%m%d'),exception_type=1)
+        print service_id
         print type(time)
         routes=Routes.objects.filter(route_short_name=request.GET['routeNo'])
         for route in routes:
-            trips=Trips.objects.filter(route_id=route.route_id,service_id=serviceid)
+            trips=Trips.objects.filter(route_id=route.route_id,service_id=service_id)
             for trip in trips:
                 result={}
                 stops=StopTimes.objects.filter(trip_id=trip.trip_id,stop_sequence=1,arrival_time__gt=time)
@@ -73,7 +73,6 @@ def locate(request):
             stops['lat']=stoploc.stop_id.stop_lat
             stops['lon']=stoploc.stop_id.stop_lon
             stop_locations.append(stops)
-    print trip_id
     vp=VehiclePositions.objects.filter(trip_id=trip_id)
     vehiclepos={}
     if vp:
@@ -81,3 +80,19 @@ def locate(request):
         vehiclepos['lat']=vehicleposition.p_latitude
         vehiclepos['lon']=vehicleposition.p_longitude
     return render_to_response('locate.html',{'stoplocations':stop_locations,'vp':vehiclepos})
+
+
+def predict(request):
+    if "trip_id" in request.GET:
+        stoptimes=[]
+        trip_id=request.GET['trip_id']
+        schedules=TripUpdates.objects.filter(trip_id=trip_id)
+        for schedule in schedules:
+            stoptime={}
+            print schedule.stop_id
+            stoptime["stop_name"]=schedule.stop_id.stop_name
+            stoptime["arrival_time"]=schedule.arrival_time
+            stoptime["departure_time"]=schedule.departure_time
+            stoptimes.append(stoptime)
+    return render_to_response('predictions.html',{'stoptimes':stoptimes})
+    

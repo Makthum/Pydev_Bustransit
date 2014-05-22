@@ -31,13 +31,14 @@
 	<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
 	<![endif]-->
 	<script>
+	var image = "{% static "bus.png" %}";
 	var stops=[];
 	var i=0;
 	var busloc=new google.maps.LatLng({{vp.lat}},{{vp.lon}})
 	var length={{stoplocations|length}};
 	var si=Math.floor(length/8);
 	{% for stoplocation in stoplocations %}
-		if(i==0 || i==length){
+		if(i==0 || i==length-1){
 			stops.push({'location':new google.maps.LatLng({{stoplocation.lat}},{{stoplocation.lon}})});
 		}
 		else if(i%si==0){
@@ -48,13 +49,13 @@
 	var start=stops[0]['location']
 	var end=stops[stops.length-1]['location'];
     stops.splice(0,1);
-    stops.splice(stops.length,1);
+    stops.splice(stops.length-1,1);
 	
 	
 	var directionsDisplay;
 	var directionsService = new google.maps.DirectionsService();
 	      function initialize() {
-	    	  directionsDisplay = new google.maps.DirectionsRenderer();
+	    	  directionsDisplay = new google.maps.DirectionsRenderer({suppressMarkers: true});
 	        var mapOptions = {
 	          center: new google.maps.LatLng(43.8561, -79.337019),
 	          zoom: 15
@@ -66,9 +67,19 @@
 	        var marker = new google.maps.Marker({
 	            position: busloc,
 	            map: map,
+	            title: 'Bus Location',
+	            icon:image
+	        });
+	        var marker = new google.maps.Marker({
+	            position: start,
+	            map: map,
 	            title: 'Bus Location'
 	        });
-
+	        var marker = new google.maps.Marker({
+	            position: end,
+	            map: map,
+	            title: 'Bus Location'
+	        });
 	
 	    	  var request = {
 	    	      origin:start,

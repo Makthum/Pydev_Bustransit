@@ -17,7 +17,8 @@ urlpatterns = patterns('',
     url(r'^searchbus/$','TransitSystem.views.searchbus',name='searchbus'),
 
     url(r'^schedule/$','TransitSystem.views.schedule',name='schedule'),
-    url(r'^locate/$','TransitSystem.views.locate',name='schedule'),
+    url(r'^locate/$','TransitSystem.views.locate',name='locate'),
+    url(r'^predictions/$','TransitSystem.views.predict',name='predict'),
 
     # Uncomment the next line to enable the admin:
     url(r'^admin/', include(admin.site.urls)),
