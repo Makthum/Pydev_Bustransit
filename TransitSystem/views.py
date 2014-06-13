@@ -1,5 +1,5 @@
 # Create your views here.
-from datetime import datetime
+from datetime import datetime,timedelta
 
 
 from django.contrib.auth.decorators import login_required
@@ -29,13 +29,13 @@ def searchbus(request):
         date=request.GET['searchdate']
         time=request.GET['searchtime']
         date=datetime.strptime(date,'%Y/%m/%d')
-        print date
-        service_id=CalendarDates.objects.filter(date=datetime.strftime(date,'%Y%m%d'),exception_type=1)
+        service_id=findserviceId(date)
         print service_id
-        print type(time)
+        time=datetime.strptime(time,'%H:%M')-timedelta(hours=1)
+        time=time.time()
         routes=Routes.objects.filter(route_short_name=request.GET['routeNo'])
         for route in routes:
-            trips=Trips.objects.filter(route_id=route.route_id,service_id=service_id)
+            trips=Trips.objects.filter(route_id=route.route_id,service_id__in=service_id)
             for trip in trips:
                 result={}
                 stops=StopTimes.objects.filter(trip_id=trip.trip_id,stop_sequence=1,arrival_time__gt=time)
@@ -96,3 +96,19 @@ def predict(request):
             stoptimes.append(stoptime)
     return render_to_response('predictions.html',{'stoptimes':stoptimes})
     
+def findserviceId(date):
+    date=date.date()
+    result=[]
+    dayofweek=date.weekday()
+    if (dayofweek>=0 and dayofweek<5):
+        result.append(1)
+    elif(dayofweek==5):
+        result.append(2)
+    elif(dayofweek==6):
+        result.append(3)
+    else:
+        result.append(80)
+    service_ids=CalendarDates.objects.filter(date=datetime.strftime(date,'%Y%m%d'),exception_type=1)
+    for service_id in service_ids:
+        result.append(service_id.service_id.service_id)
+    return result    

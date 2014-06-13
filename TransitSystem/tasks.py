@@ -41,7 +41,7 @@ def load_realtime():
                 vp.p_speed=ventity.position.speed
             vp.save()
         except ObjectDoesNotExist:
-            print "trip id not found"
+            print ventity.trip.trip_id
             
 @task(name='loadTripUpdates')
 def load_TripUpdates():
